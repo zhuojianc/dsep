@@ -367,27 +367,6 @@ def simulation(params0):
             writer = csv.writer(csvfile)
             writer.writerow(simu_df[methodName].loc['beta_est'])
     return simu_res
-    # try:
-    #     params = params0.copy()
-    #     init_env = init_data(params)
-    #     data_env = copy.deepcopy(init_env)
-    #     LSER = distributed_seq_ana(data_env, params, adaptive='random', method='lse')
-    #     params = params0.copy()
-    #     data_env = copy.deepcopy(init_env)
-    #     LSED = distributed_seq_ana(data_env, params, adaptive='D_optimal', method='lse')
-    #     simu_res = {'LSER': LSER, 'LSED': LSED}
-    #     simu_df = pd.DataFrame(simu_res)
-    #     res_list.append(simu_res)
-    #     for methodName in simu_df.columns:
-    #         fileName = params['res_dir'] + '/betaTab_d' + str(params['d']) + methodName + datetime.now().strftime(
-    #             '%m_%d') + '.csv'
-    #         with open(fileName, 'a') as csvfile:
-    #             writer = csv.writer(csvfile)
-    #             writer.writerow(simu_df[methodName].loc['beta_est'])
-    # except:
-    #     pass
-    # else:
-    #     return simu_res
 
 
 if __name__ == '__main__':
