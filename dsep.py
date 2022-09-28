@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 2022/9/26 14:45
+# @Time    : 2022/9/28 9:49
 # @Author  : zhuojian chen
 # @File    : dsep.py
 # @Description : Code for paper “Distributed sequential estimation procedures"
@@ -156,11 +156,11 @@ def distributed_seq_ana(data_env, params, adaptive='random', method='lse'):
     '''
     K = params['K']
     p = params['p']
-    start_time = time.time()
     n_all = len(data_env.data)
     res_list = []
     beta0 = params['beta0']
     for i in range(K):
+        start_time = time.time()
         data_env_new = copy.deepcopy(data_env)
         paramsnew = params.copy()
         index = range(int(i * n_all / K), int((i + 1) * n_all / K))
@@ -197,7 +197,7 @@ def distributed_seq_ana(data_env, params, adaptive='random', method='lse'):
                 res['method'] = method
                 res['adaptive'] = adaptive
                 end_time = time.time()
-                res['time'] = (end_time - start_time) * 20 / K
+                res['time'] = end_time - start_time
                 break
         res_list.append(res)
     N = 0
@@ -208,7 +208,9 @@ def distributed_seq_ana(data_env, params, adaptive='random', method='lse'):
     sum = np.zeros((p, p))
     upsilon = 0
     upsilon_2 = 0
+    time_list=[]
     for i in range(K):
+        time_list.append(res_list[i]['time'])
         x = data_env.data[res_list[i]['label_ids'], :p]
         sigma_p = np.linalg.inv(x.T.dot(x))
         sum += (res_list[i]['N'] / N) ** 2 * sigma_p
@@ -228,6 +230,7 @@ def distributed_seq_ana(data_env, params, adaptive='random', method='lse'):
     res_all['cp'] = cp
     res_all['method'] = res_list[0]['method']
     res_all['adaptive'] = res_list[0]['adaptive']
+    res_all['time'] = np.max(time_list)
     return res_all
 
 
@@ -275,7 +278,7 @@ def print_params(params):
     :param params:
     :return: save txtfile title
     '''
-    path = './' + params['note'] + '/'
+    path = './' + params['note']
     res_dir = path + '/rho' + str(params['rho']) + '/d_' + str(params['d'])
     isExists = os.path.exists(res_dir)
     if not isExists:
@@ -347,31 +350,44 @@ def simulation(params0):
     :param params0:
     :return: simulation result
     '''
-    try:
-        params = params0.copy()
-        init_env = init_data(params)
-        data_env = copy.deepcopy(init_env)
-        start_time = time.time()
-        LSER = distributed_seq_ana(data_env, params, adaptive='random', method='lse')
-        LSER['time'] = round((time.time() - start_time) / 60, 3)
-        params = params0.copy()
-        data_env = copy.deepcopy(init_env)
-        start_time = time.time()
-        LSED = distributed_seq_ana(data_env, params, adaptive='D_optimal', method='lse')
-        LSED['time'] = round((time.time() - start_time) / 60, 3)
-        simu_res = {'LSER': LSER, 'LSED': LSED}
-        simu_df = pd.DataFrame(simu_res)
-        res_list.append(simu_res)
-        for methodName in simu_df.columns:
-            fileName = params['res_dir'] + '/betaTab_d' + str(params['d']) + methodName + datetime.now().strftime(
-                '%m_%d') + '.csv'
-            with open(fileName, 'a') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(simu_df[methodName].loc['beta_est'])
-    except:
-        pass
-    else:
-        return (simu_res)
+    params = params0.copy()
+    init_env = init_data(params)
+    data_env = copy.deepcopy(init_env)
+    LSER = distributed_seq_ana(data_env, params, adaptive='random', method='lse')
+    params = params0.copy()
+    data_env = copy.deepcopy(init_env)
+    LSED = distributed_seq_ana(data_env, params, adaptive='D_optimal', method='lse')
+    simu_res = {'LSER': LSER, 'LSED': LSED}
+    simu_df = pd.DataFrame(simu_res)
+    #res_list.append(simu_res)
+    for methodName in simu_df.columns:
+        fileName = params['res_dir'] + '/betaTab_d' + str(params['d']) + methodName + datetime.now().strftime(
+            '%m_%d') + '.csv'
+        with open(fileName, 'a') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(simu_df[methodName].loc['beta_est'])
+    return simu_res
+    # try:
+    #     params = params0.copy()
+    #     init_env = init_data(params)
+    #     data_env = copy.deepcopy(init_env)
+    #     LSER = distributed_seq_ana(data_env, params, adaptive='random', method='lse')
+    #     params = params0.copy()
+    #     data_env = copy.deepcopy(init_env)
+    #     LSED = distributed_seq_ana(data_env, params, adaptive='D_optimal', method='lse')
+    #     simu_res = {'LSER': LSER, 'LSED': LSED}
+    #     simu_df = pd.DataFrame(simu_res)
+    #     res_list.append(simu_res)
+    #     for methodName in simu_df.columns:
+    #         fileName = params['res_dir'] + '/betaTab_d' + str(params['d']) + methodName + datetime.now().strftime(
+    #             '%m_%d') + '.csv'
+    #         with open(fileName, 'a') as csvfile:
+    #             writer = csv.writer(csvfile)
+    #             writer.writerow(simu_df[methodName].loc['beta_est'])
+    # except:
+    #     pass
+    # else:
+    #     return simu_res
 
 
 if __name__ == '__main__':
