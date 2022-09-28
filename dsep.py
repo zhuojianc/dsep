@@ -248,7 +248,7 @@ params0 = {
     'simulations': int(100),  # simulation times
     'core': int(16),   # num of cores in parallel computing
     'd': 0.5, # same as d defination in paper
-    'init_N': int(8), # initial sample size in each produre
+    'init_N': int(8), # initial sample size in each procedure
     'beta0': [-1, 1, 0.7, 0.5, 0.2], # real beta
     'note': 'dsep', # result saved directory
     'rho': 0, # correlated index
